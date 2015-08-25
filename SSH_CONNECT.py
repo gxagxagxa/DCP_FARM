@@ -51,6 +51,7 @@ class SSH_CONNECT(object):
             self._getCPUcores()
         except:
             print('somthing error in ssh connect')
+            self.info['done'] = True
             self.ssh.close()
             return 1
         finally:
@@ -67,6 +68,7 @@ class SSH_CONNECT(object):
                 if len(rl) > 0:
                     # Print data from stdout
                     self.info['sshinfo'] = stdout.channel.recv(1024).rstrip()
+                    self.info['displayinfo'] = self.info['sshinfo'].splitlines()[-1].lstrip().rstrip()
         self.info['done'] = True
 
     def disconnect(self):

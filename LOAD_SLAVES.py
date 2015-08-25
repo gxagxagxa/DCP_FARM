@@ -17,6 +17,11 @@ class LOAD_SLAVES(object):
         with open(path, 'r') as slavefile:
             slavefile_readlines = slavefile.readlines()
             for index, line in enumerate(slavefile_readlines):
+                if len(line) == 0:
+                    continue
+                if line[0] == '#':
+                    continue
+                    
                 if 'machine' in line:
                     tempmachine = {}
                     tempmachine['machine'] = line.split('=')[-1].lstrip().rstrip()

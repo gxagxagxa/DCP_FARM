@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-__author__ = 'mac'
+__author__ = ''
 
 import os
 import sys
@@ -21,7 +21,7 @@ class LOAD_SLAVES(object):
                     continue
                 if line[0] == '#':
                     continue
-                    
+
                 if 'machine' in line:
                     tempmachine = {}
                     tempmachine['machine'] = line.split('=')[-1].lstrip().rstrip()

@@ -42,18 +42,18 @@ class MASTER_CENTER(object):
             sshthread.start()
             # sshthread.join()
 
-    def _runcommand(self, sshclient, cmd, sleep):
+    def _runcommand(self, clientindex, cmd, sleep):
         # print(sshclient.info)
-        if cmd == '' or (not sshclient.info['done']):
+        if cmd == '' or (not self.sshclients[clientindex].info['done']):
             print('empty command or sshclient is working')
             return
         print(cmd)
-        sshclient.command(cmd, sleep)
+        self.sshclients[clientindex].command(cmd, sleep)
 
     def run(self, commandlist):
         for index in xrange(len(self.sshclients)):
             sshthread = threading.Thread(target=self._runcommand,
-                                         args=(self.sshclients[index],
+                                         args=(index,
                                                commandlist[index],
                                                1),
                                          name=self.slavelist[index]['machine'])

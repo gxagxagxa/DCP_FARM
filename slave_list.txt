@@ -1,0 +1,12 @@
+
+
+machine = IO-02
+ip = 192.168.9.62
+user = mac
+password = tgyc
+
+machine = IO-03
+ip = 192.168.9.63
+user = mac
+password = tgyc
+

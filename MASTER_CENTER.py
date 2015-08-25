@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-__author__ = 'mac'
+__author__ = 'Andy Guo'
 
 import SSH_CONNECT
 import LOAD_SLAVES
@@ -44,25 +44,26 @@ class MASTER_CENTER(object):
 
     def _runcommand(self, clientindex, cmd, sleep):
         # print(sshclient.info)
-        if cmd == '' or (not self.sshclients[clientindex].info['done']):
-            print('empty command or sshclient is working')
+        if cmd == '':
+            print('empty command')
             return
-        print(cmd)
-        self.sshclients[clientindex].command(cmd, sleep)
+        if (not self.sshclients[clientindex].info['done']):
+            print('sshclient is working')
+            return
+
+        # print(cmd)
+        sshthread = threading.Thread(target=self.sshclients[clientindex].command,
+                                     args=(cmd, sleep))
+        sshthread.start()
 
     def run(self, commandlist):
         for index in xrange(len(self.sshclients)):
-            sshthread = threading.Thread(target=self._runcommand,
-                                         args=(index,
-                                               commandlist[index],
-                                               1),
-                                         name=self.slavelist[index]['machine'])
-            sshthread.start()
-            # sshthread.join()
+            self._runcommand(index, commandlist[index], 1)
 
     def listening(self, sleep):
         self.isfinish = False
         while (not self.isfinish) and (not self.forcestoplistening):
+            # while True:
             time.sleep(sleep)
             self.isfinish = True
             for index in xrange(len(self.sshclients)):
@@ -94,24 +95,36 @@ if __name__ == '__main__':
     testclass = MASTER_CENTER()
     testclass.prepare('./slave_list.txt')
     time.sleep(3)
+    print(testclass.infolist)
+
     cmdlist = [
         r'/opt/local/bin/opendcp_j2k -i /Volumes/GoKu/LAOPAO/09_FINAL\ OUT/150822_LAOPAO_EN_TEXT_DCI/R2_0-83996/2048x858 -o /Volumes/GoKu/test_copy/andyJ2C -s 1 -d 1000',
         r'/opt/local/bin/opendcp_j2k -i /Volumes/GoKu/LAOPAO/09_FINAL\ OUT/150822_LAOPAO_EN_TEXT_DCI/R2_0-83996/2048x858 -o /Volumes/GoKu/test_copy/andyJ2C -s 1001 -d 2000'
-        ]
+    ]
+
     testclass.run(cmdlist)
+    time.sleep(2)
     listening = threading.Thread(target=testclass.listening,
                                  args=(1,),
                                  name='listening')
     listening.start()
-    # testclass.listening(1)
-    # time.sleep(5)
-    # testclass.forcestoplistening = True
-    # time.sleep(5)
-    # testclass.forcestoplistening = False
-    # listening2 = threading.Thread(target=testclass.listening,
-    #                              args=(1,),
-    #                              name='listening2')
-    # listening2.start()
+
+    time.sleep(3)
+
+    print('=== going to shutdown 0 ===')
+    testclass.shutdown([0])
     time.sleep(5)
+    print('=== going to reconnect 0 ===')
+    testclass.reconnect([0])
+    # print(testclass.sshclients[0].info)
+    time.sleep(5)
+    print('=== going to run 0 ===')
+    testclass._runcommand(0,
+                          r'/opt/local/bin/opendcp_j2k -i /Volumes/GoKu/LAOPAO/09_FINAL\ OUT/150822_LAOPAO_EN_TEXT_DCI/R2_0-83996/2048x858 -o /Volumes/GoKu/test_copy/andyJ2C -s 1 -d 1000',
+                          1)
+
+    time.sleep(5)
+    print('=== going to shutdown all ===')
     testclass.shutdown(range(2))
+    time.sleep(5)
     print(testclass.infolist)

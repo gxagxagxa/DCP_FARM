@@ -6,6 +6,7 @@ __author__ = 'Andy Guo'
 import paramiko
 import select
 import time
+import threading
 
 
 class SSH_CONNECT(object):
@@ -14,7 +15,8 @@ class SSH_CONNECT(object):
                      'ready': False,
                      'software': False,
                      'sshinfo': '',
-                     'done': True}
+                     'done': True,
+                     'displayinfo': ''}
         self.ssh = paramiko.SSHClient()
 
     def checksoftware(self, softwarepath):
@@ -77,7 +79,13 @@ class SSH_CONNECT(object):
 if __name__ == '__main__':
     testclass = SSH_CONNECT()
     testclass.connect('192.168.9.61', 'mac', 'tgyc')
-    testclass.command('/opt/bin/opendcp/opendcp_j2k -i /Volumes/GoKu/LAOPAO/09_FINAL\ OUT/150822_LAOPAO_EN_TEXT_DCI/R2_0-83996/20048x858 -o /Volumes/GoKu/test_copy/andyJ2C -s 1 -d 1000', )
+    # mythreading = threading.Thread(target=testclass.command,
+    #                                args=(
+    #                                    '/opt/bin/opendcp/opendcp_j2k -i /Volumes/GoKu/LAOPAO/09_FINAL\ OUT/150822_LAOPAO_EN_TEXT_DCI/R2_0-83996/20048x858 -o /Volumes/GoKu/test_copy/andyJ2C -s 1 -d 1000', 1,)
+    #                                )
+
+    # testclass.command('/opt/bin/opendcp/opendcp_j2k -i /Volumes/GoKu/LAOPAO/09_FINAL\ OUT/150822_LAOPAO_EN_TEXT_DCI/R2_0-83996/20048x858 -o /Volumes/GoKu/test_copy/andyJ2C -s 1 -d 1000' )
+    testclass.command('ping -c 10 192.168.9.1')
     testclass.disconnect()
     print(testclass.info)
 

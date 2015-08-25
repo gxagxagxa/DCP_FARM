@@ -49,9 +49,11 @@ class SSH_CONNECT(object):
             self.info['ready'] = True
             self.checksoftware('/opt/local/bin/opendcp_j2k')
             self._getCPUcores()
+            self.info['displayinfo'] = 'connected'
         except:
             print('somthing error in ssh connect')
             self.info['done'] = True
+            self.info['displayinfo'] = 'Fail'
             self.ssh.close()
             return 1
         finally:
@@ -67,13 +69,16 @@ class SSH_CONNECT(object):
                 rl, wl, xl = select.select([stdout.channel], [], [], 0.0)
                 if len(rl) > 0:
                     # Print data from stdout
-                    self.info['sshinfo'] = stdout.channel.recv(1024).rstrip()
+                    self.info['sshinfo'] = stdout.channel.recv(2048).rstrip()
                     self.info['displayinfo'] = self.info['sshinfo'].splitlines()[-1].lstrip().rstrip()
         self.info['done'] = True
+        if not self.info['displayinfo'] == 'disconnected':
+            self.info['displayinfo'] = 'idle'
 
     def disconnect(self):
         try:
             self.ssh.close()
+            self.info['displayinfo'] = 'disconnected'
         except:
             print('something erro in ssh disconnect')
 

@@ -42,7 +42,7 @@ class MASTER_CENTER(object):
             sshthread.start()
             # sshthread.join()
 
-    def _runcommand(self, clientindex, cmd, sleep):
+    def _runcommand(self, clientindex, cmd, taskid, sleep):
         # print(sshclient.info)
         if cmd == '':
             print('empty command')
@@ -53,12 +53,12 @@ class MASTER_CENTER(object):
 
         # print(cmd)
         sshthread = threading.Thread(target=self.sshclients[clientindex].command,
-                                     args=(cmd, sleep))
+                                     args=(cmd, taskid, sleep))
         sshthread.start()
 
     def run(self, commandlist):
         for index in xrange(len(self.sshclients)):
-            self._runcommand(index, commandlist[index], 1)
+            self._runcommand(index, commandlist[index], index, 1)
 
     def listening(self, sleep):
         self.isfinish = False
@@ -121,6 +121,7 @@ if __name__ == '__main__':
     print('=== going to run 0 ===')
     testclass._runcommand(0,
                           r'/opt/local/bin/opendcp_j2k -i /Volumes/GoKu/LAOPAO/09_FINAL\ OUT/150822_LAOPAO_EN_TEXT_DCI/R2_0-83996/2048x858 -o /Volumes/GoKu/test_copy/andyJ2C -s 1 -d 1000',
+                          3,
                           1)
 
     time.sleep(5)

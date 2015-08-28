@@ -17,12 +17,14 @@ class SSH_CONNECT(object):
                      'sshinfo': '',
                      'done': True,
                      'displayinfo': '',
-                     'taskid': -1}
+                     'taskid': -1,
+                     'jobid':-1,
+                     'lastinfo': ''}
         self.ssh = paramiko.SSHClient()
 
     def checksoftware(self, softwarepath):
         cmd = 'test -e ' + softwarepath + '&& echo "True" || echo "False"'
-        self.command(cmd, -1, 0)
+        self.command(cmd, -1, -1, 0)
         # print(state)
         if self.info['sshinfo'] == 'True':
             self.info['software'] = True
@@ -31,14 +33,14 @@ class SSH_CONNECT(object):
 
     def _getCPUcores(self):
         cmd = 'uname'
-        self.command(cmd, -1, 0)
+        self.command(cmd, -1, -1, 0)
         if self.info['sshinfo'].lower() == 'darwin':
             cmd = 'sysctl -n hw.ncpu'
-            self.command(cmd, -1, 0)
+            self.command(cmd, -1, -1, 0)
             self.info['thread'] = int(self.info['sshinfo'])
         elif self.info['sshinfo'].lower() == 'linux':
             cmd = 'nproc'
-            self.command(cmd, -1, 0)
+            self.command(cmd, -1, -1, 0)
             self.info['thread'] = int(self.info['sshinfo'])
 
     def connect(self, ip, usr, pwd):
@@ -60,10 +62,11 @@ class SSH_CONNECT(object):
         finally:
             return 0
 
-    def command(self, cmd, taskid, sleep):
+    def command(self, cmd, jobid, taskid, sleep):
         stdin, stdout, stderr = self.ssh.exec_command(cmd)
         self.info['done'] = False
         self.info['taskid'] = taskid
+        self.info['jobid'] = jobid
         while not stdout.channel.exit_status_ready():
             # Only print data if there is data to read in the channel
             time.sleep(sleep)
@@ -72,9 +75,10 @@ class SSH_CONNECT(object):
                 if len(rl) > 0:
                     # Print data from stdout
                     self.info['sshinfo'] = stdout.channel.recv(4096).rstrip()
-                    self.info['displayinfo'] = self.info['sshinfo'].splitlines()[-1].lstrip().rstrip()
+                    self.info['displayinfo'] = self.info['sshinfo'].rstrip().splitlines()[-1].lstrip()
         self.info['done'] = True
-        self.info['taskid'] = -1
+        self.info['lastinfo'] = self.info['sshinfo'].rstrip().splitlines()[-1].lstrip()
+        # self.info['taskid'] = -1
         if not self.info['displayinfo'] == 'disconnected':
             self.info['displayinfo'] = 'idle'
 

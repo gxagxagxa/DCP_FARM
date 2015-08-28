@@ -19,7 +19,8 @@ class SSH_CONNECT(object):
                      'displayinfo': '',
                      'taskid': -1,
                      'jobid':-1,
-                     'lastinfo': ''}
+                     'lastinfo': '',
+                     'machine':''}
         self.ssh = paramiko.SSHClient()
 
     def checksoftware(self, softwarepath):
@@ -43,20 +44,22 @@ class SSH_CONNECT(object):
             self.command(cmd, -1, -1, 0)
             self.info['thread'] = int(self.info['sshinfo'])
 
-    def connect(self, ip, usr, pwd):
+    def connect(self, machine, ip, usr, pwd):
         try:
             self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             self.ssh.connect(ip,
                              username=usr,
                              password=pwd)
             self.info['ready'] = True
+            self.info['machine'] = machine
             self.checksoftware('/opt/local/bin/opendcp_j2k')
             self._getCPUcores()
             self.info['displayinfo'] = 'connected'
         except:
-            print('somthing error in ssh connect')
+            print('%s somthing error in ssh connect' % machine)
             self.info['done'] = True
             self.info['displayinfo'] = 'offline'
+            self.info['machine'] = machine
             self.ssh.close()
             return 1
         finally:

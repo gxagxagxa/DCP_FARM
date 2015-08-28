@@ -11,15 +11,17 @@ import time
 class MASTER_CENTER(object):
     def __init__(self):
         self.slavelist = None
-        self.infolist = {}
+        self.infolist = []
         self.sshclients = []
         self.isfinish = True
         self.forcestoplistening = False
 
-    def _getsshclientstate(self, sshclient, ip, usr, pwd):
+    def _getsshclientstate(self, clientindex, machine, ip, usr, pwd):
         # print(threading.currentThread())
-        sshclient.connect(ip, usr, pwd)
-        self.infolist[threading.currentThread().name] = sshclient.info
+        sshclient = self.sshclients[clientindex]
+        sshclient.connect(machine, ip, usr, pwd)
+        self.infolist[clientindex] = sshclient.info
+
 
     def prepare(self, path):
         self.slavelist = LOAD_SLAVES.LOAD_SLAVES().load(path)
@@ -30,11 +32,12 @@ class MASTER_CENTER(object):
 
         for index in xrange(len(self.slavelist)):
             self.sshclients.append(SSH_CONNECT.SSH_CONNECT())
-            self.infolist[self.slavelist[index]['machine']] = ''
+            self.infolist.append({'machine': self.slavelist[index]['machine']})
 
         for index in xrange(len(self.slavelist)):
             sshthread = threading.Thread(target=self._getsshclientstate,
-                                         args=(self.sshclients[index],
+                                         args=(index,
+                                               self.slavelist[index]['machine'],
                                                self.slavelist[index]['ip'],
                                                self.slavelist[index]['user'],
                                                self.slavelist[index]['password']),
@@ -67,7 +70,7 @@ class MASTER_CENTER(object):
             time.sleep(sleep)
             self.isfinish = True
             for index in xrange(len(self.sshclients)):
-                self.infolist[self.slavelist[index]['machine']] = self.sshclients[index].info
+                self.infolist[index] = self.sshclients[index].info
                 self.isfinish = self.isfinish and self.sshclients[index].info['done']
 
             print(self.infolist)
@@ -83,7 +86,8 @@ class MASTER_CENTER(object):
     def reconnect(self, clientindex):
         for index in clientindex:
             sshthread = threading.Thread(target=self._getsshclientstate,
-                                         args=(self.sshclients[index],
+                                         args=(index,
+                                               self.slavelist[index]['machine'],
                                                self.slavelist[index]['ip'],
                                                self.slavelist[index]['user'],
                                                self.slavelist[index]['password']),

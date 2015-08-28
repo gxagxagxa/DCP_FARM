@@ -42,7 +42,7 @@ class MASTER_CENTER(object):
             sshthread.start()
             # sshthread.join()
 
-    def _runcommand(self, clientindex, cmd, taskid, sleep):
+    def _runcommand(self, clientindex, cmd, jobid, taskid, sleep):
         # print(sshclient.info)
         if cmd == '':
             print('empty command')
@@ -53,14 +53,14 @@ class MASTER_CENTER(object):
 
         # print(cmd)
         sshthread = threading.Thread(target=self.sshclients[clientindex].command,
-                                     args=(cmd, taskid, sleep))
+                                     args=(cmd, jobid, taskid, sleep))
         sshthread.start()
 
     def run(self, commandlist):
         for index in xrange(len(self.sshclients)):
-            self._runcommand(index, commandlist[index], index, 1)
+            self._runcommand(index, commandlist[index], 1, index, 1)
 
-    def listening(self, sleep):
+    def _listening(self, sleep):
         self.isfinish = False
         while (not self.isfinish) and (not self.forcestoplistening):
             # while True:
@@ -72,9 +72,13 @@ class MASTER_CENTER(object):
 
             print(self.infolist)
 
-            # while not self.isfinish:
-            #     time.sleep(0.5)
-            #     print(self.infolist)
+    def listening(self, sleep):
+        listenthread = threading.Thread(target=self._listening,
+                                        args=(1,),
+                                        name='listening')
+        listenthread.start()
+
+
 
     def reconnect(self, clientindex):
         for index in clientindex:
@@ -104,10 +108,12 @@ if __name__ == '__main__':
 
     testclass.run(cmdlist)
     time.sleep(2)
-    listening = threading.Thread(target=testclass.listening,
-                                 args=(1,),
-                                 name='listening')
-    listening.start()
+    # listening = threading.Thread(target=testclass.listening,
+    #                              args=(1,),
+    #                              name='listening')
+    # listening.start()
+    testclass.listening(1)
+
 
     time.sleep(3)
 
@@ -121,6 +127,7 @@ if __name__ == '__main__':
     print('=== going to run 0 ===')
     testclass._runcommand(0,
                           r'/opt/local/bin/opendcp_j2k -i /Volumes/GoKu/LAOPAO/09_FINAL\ OUT/150822_LAOPAO_EN_TEXT_DCI/R2_0-83996/2048x858 -o /Volumes/GoKu/test_copy/andyJ2C -s 1 -d 1000',
+                          -1,
                           3,
                           1)
 

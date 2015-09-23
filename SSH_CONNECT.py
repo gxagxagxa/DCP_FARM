@@ -66,24 +66,31 @@ class SSH_CONNECT(object):
             return 0
 
     def command(self, cmd, jobid, taskid, sleep):
-        stdin, stdout, stderr = self.ssh.exec_command(cmd)
-        self.info['done'] = False
-        self.info['taskid'] = taskid
-        self.info['jobid'] = jobid
-        while not stdout.channel.exit_status_ready():
-            # Only print data if there is data to read in the channel
-            time.sleep(sleep)
-            if stdout.channel.recv_ready():
-                rl, wl, xl = select.select([stdout.channel], [], [], 0.0)
-                if len(rl) > 0:
-                    # Print data from stdout
-                    self.info['sshinfo'] = stdout.channel.recv(4096).rstrip()
-                    self.info['displayinfo'] = self.info['sshinfo'].rstrip().splitlines()[-1].lstrip()
-        self.info['done'] = True
-        self.info['lastinfo'] = self.info['sshinfo'].rstrip().splitlines()[-1].lstrip()
-        # self.info['taskid'] = -1
-        if not self.info['displayinfo'] == 'disconnected':
-            self.info['displayinfo'] = 'idle'
+        try:
+            stdin, stdout, stderr = self.ssh.exec_command(cmd)
+            self.info['done'] = False
+            self.info['taskid'] = taskid
+            self.info['jobid'] = jobid
+            while not stdout.channel.exit_status_ready():
+                # Only print data if there is data to read in the channel
+                time.sleep(sleep)
+                if stdout.channel.recv_ready():
+                    rl, wl, xl = select.select([stdout.channel], [], [], 0.0)
+                    if len(rl) > 0:
+                        # Print data from stdout
+                        self.info['sshinfo'] = stdout.channel.recv(4096).rstrip()
+                        if len(self.info['sshinfo']) > 0:
+                            self.info['displayinfo'] = self.info['sshinfo'].rstrip().splitlines()[-1].lstrip()
+            self.info['done'] = True
+            if len(self.info['sshinfo']) > 0:
+                self.info['lastinfo'] = self.info['sshinfo'].rstrip().splitlines()[-1].lstrip()
+            # self.info['taskid'] = -1
+            if not self.info['displayinfo'] == 'disconnected':
+                self.info['displayinfo'] = 'idle'
+        except:
+            self.info['ready'] = False
+            self.info['done'] = True
+            self.info['displayinfo'] = 'offline'
 
     def disconnect(self):
         try:
